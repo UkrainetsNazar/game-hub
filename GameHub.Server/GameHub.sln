@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameHub.API", "GameHub.API\GameHub.API.csproj", "{E2A8435E-8FB2-4B27-8E06-7A28731B7457}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameHub.Data", "GameHub.Data\GameHub.Data.csproj", "{6BAC8E15-2B23-4DAE-9C4D-5C4B441101E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameHub.Core", "GameHub.Core\GameHub.Core.csproj", "{C4234C6B-B516-4E0A-AEF2-364ED6225927}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E2A8435E-8FB2-4B27-8E06-7A28731B7457}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2A8435E-8FB2-4B27-8E06-7A28731B7457}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2A8435E-8FB2-4B27-8E06-7A28731B7457}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2A8435E-8FB2-4B27-8E06-7A28731B7457}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BAC8E15-2B23-4DAE-9C4D-5C4B441101E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BAC8E15-2B23-4DAE-9C4D-5C4B441101E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BAC8E15-2B23-4DAE-9C4D-5C4B441101E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BAC8E15-2B23-4DAE-9C4D-5C4B441101E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4234C6B-B516-4E0A-AEF2-364ED6225927}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4234C6B-B516-4E0A-AEF2-364ED6225927}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4234C6B-B516-4E0A-AEF2-364ED6225927}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4234C6B-B516-4E0A-AEF2-364ED6225927}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
