@@ -71,6 +71,10 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+//Scopes
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<JwtService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
