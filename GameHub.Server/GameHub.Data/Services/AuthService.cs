@@ -2,16 +2,10 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 
-public class AuthService
+public class AuthService(AppDbContext dbContext, JwtService jwtService)
 {
-    private readonly AppDbContext _dbContext;
-    private readonly JwtService _jwtService;
-
-    public AuthService(AppDbContext dbContext, JwtService jwtService)
-    {
-        _dbContext = dbContext;
-        _jwtService = jwtService;
-    }
+    private readonly AppDbContext _dbContext = dbContext;
+    private readonly JwtService _jwtService = jwtService;
 
     public async Task<Player> Register(RegisterDto request)
     {

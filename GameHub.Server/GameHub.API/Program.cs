@@ -74,7 +74,9 @@ builder.Services.AddAuthentication(options =>
 //Scopes
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IGameService, GameService>();
 
+builder.Services.AddSignalR();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
@@ -91,6 +93,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.MapHub<GameHub>("/gamehub");
 
 if (app.Environment.IsDevelopment())
 {

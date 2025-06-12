@@ -4,14 +4,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
 
-public class JwtService
+public class JwtService(IOptions<JwtOptions> options)
 {
-    private readonly JwtOptions _options;
-
-    public JwtService(IOptions<JwtOptions> options)
-    {
-        _options = options.Value;
-    }
+    private readonly JwtOptions _options = options.Value;
 
     public string GenerateToken(Guid userId, string userName)
     {
