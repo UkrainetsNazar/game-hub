@@ -7,10 +7,32 @@ public class GameHub(IGameService gameService) : Hub
 
     private static readonly ConcurrentDictionary<Guid, Timer> _gameTimers = new();
 
-    public async Task JoinGame(string gameId)
+    public async Task<GameSession> CreateGame(string playerId)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
+        var game = await _gameService.CreateGameAsync(Guid.Parse(playerId));
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
+
+        return game;
     }
+
+
+    public async Task<GameSession> JoinGame(string gameId, string playerId)
+    {
+        var game = await _gameService.JoinGameAsync(Guid.Parse(gameId), Guid.Parse(playerId));
+
+        await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
+
+        await Clients.Group(gameId).SendAsync("GameUpdated", game);
+
+        if (game.Status == GameStatus.InProgress)
+        {
+            StartTurnTimer(game.Id);
+        }
+
+        return game;
+    }
+
 
     public async Task MakeMove(string gameId, int cellIndex, string playerId)
     {
