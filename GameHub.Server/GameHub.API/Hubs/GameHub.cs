@@ -1,25 +1,34 @@
 using System.Collections.Concurrent;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-public class GameHub(IGameService gameService) : Hub
+[Authorize]
+public class GameHub : Hub
 {
-    private readonly IGameService _gameService = gameService;
+    private readonly IGameService _gameService;
 
     private static readonly ConcurrentDictionary<Guid, Timer> _gameTimers = new();
 
-    public async Task<GameSession> CreateGame(string playerId)
+    private Guid UserId => Guid.Parse(Context.User!.FindFirst(ClaimTypes.NameIdentifier)!.Value);
+
+    public GameHub(IGameService gameService)
     {
-        var game = await _gameService.CreateGameAsync(Guid.Parse(playerId));
+        _gameService = gameService;
+    }
+
+    public async Task<GameSession> CreateGame()
+    {
+        var game = await _gameService.CreateGameAsync(UserId);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
 
         return game;
     }
 
-
-    public async Task<GameSession> JoinGame(string gameId, string playerId)
+    public async Task<GameSession> JoinGame(string gameId)
     {
-        var game = await _gameService.JoinGameAsync(Guid.Parse(gameId), Guid.Parse(playerId));
+        var game = await _gameService.JoinGameAsync(Guid.Parse(gameId), UserId);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
 
@@ -33,10 +42,9 @@ public class GameHub(IGameService gameService) : Hub
         return game;
     }
 
-
-    public async Task MakeMove(string gameId, int cellIndex, string playerId)
+    public async Task<GameSession> MakeMove(string gameId, int cellIndex)
     {
-        var game = await _gameService.MakeMoveAsync(Guid.Parse(gameId), Guid.Parse(playerId), cellIndex);
+        var game = await _gameService.MakeMoveAsync(Guid.Parse(gameId), UserId, cellIndex);
 
         await Clients.Group(gameId).SendAsync("GameUpdated", game);
 
@@ -48,6 +56,8 @@ public class GameHub(IGameService gameService) : Hub
         {
             StopTimer(game.Id);
         }
+
+        return game;
     }
 
     private void StartTurnTimer(Guid gameId)

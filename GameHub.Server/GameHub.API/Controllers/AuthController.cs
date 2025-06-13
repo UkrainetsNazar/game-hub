@@ -1,3 +1,6 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -23,5 +26,21 @@ public class AuthController : ControllerBase
     {
         var token = await _authService.Login(request);
         return Ok(new { token });
+    }
+
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<IActionResult> Profile()
+    {
+        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        if (userIdClaim == null)
+        {
+            return Unauthorized("UserId is not found.");
+        }
+
+        var userId = Guid.Parse(userIdClaim.Value);
+
+        var profile = await _authService.GetProfileAsync(userId);
+        return Ok(profile);
     }
 }

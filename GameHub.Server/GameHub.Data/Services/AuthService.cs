@@ -41,4 +41,20 @@ public class AuthService(AppDbContext dbContext, JwtService jwtService)
         var token = _jwtService.GenerateToken(user.Id, user.UserName!);
         return token;
     }
+
+    public async Task<PlayerProfileDto> GetProfileAsync(Guid userId)
+    {
+        var user = await _dbContext.Players.FirstOrDefaultAsync(u => u.Id == userId)
+        ?? throw new Exception("User not found");
+
+        var playerProfile = new PlayerProfileDto
+        {
+            UserName = user.UserName,
+            Win = user.Win,
+            Draw = user.Draw,
+            Lose = user.Lose
+        };
+
+        return playerProfile;
+    }
 }
