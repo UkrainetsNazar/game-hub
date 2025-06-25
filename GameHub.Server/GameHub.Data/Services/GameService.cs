@@ -56,15 +56,18 @@ public class GameService(AppDbContext context) : IGameService
         if (CheckWin(board, symbol))
         {
             game.Status = GameStatus.Won;
+            game.WinnerId = playerId;
+            game.WinnerSymbol = symbol.ToString();
+
+            await UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId!.Value, playerId);
         }
         else if (!board.Contains('_'))
         {
             game.Status = GameStatus.Draw;
-        }
-        else
-        {
-            game.CurrentTurn = symbol == 'X' ? "O" : "X";
-            game.LastMoveTime = DateTime.UtcNow;
+            game.WinnerId = null;
+            game.WinnerSymbol = null;
+
+            await UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId!.Value, null);
         }
 
         await _context.SaveChangesAsync();
@@ -87,5 +90,32 @@ public class GameService(AppDbContext context) : IGameService
         ];
 
         return wins.Any(comb => comb.All(i => board[i] == symbol));
+    }
+
+    public async Task UpdatePlayerStatsAsync(Guid playerXId, Guid playerOId, Guid? winnerId)
+    {
+        var playerX = await _context.Players.FindAsync(playerXId);
+        var playerO = await _context.Players.FindAsync(playerOId);
+
+        if (playerX == null || playerO == null)
+            return;
+
+        if (winnerId == null)
+        {
+            playerX.Draw++;
+            playerO.Draw++;
+        }
+        else if (winnerId == playerXId)
+        {
+            playerX.Win++;
+            playerO.Lose++;
+        }
+        else
+        {
+            playerO.Win++;
+            playerX.Lose++;
+        }
+
+        await _context.SaveChangesAsync();
     }
 }

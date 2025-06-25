@@ -6,4 +6,5 @@ public interface IGameService
     Task<GameSession> MakeMoveAsync(Guid gameId, Guid playerId, int cellIndex);
     Task SaveGameAsync(GameSession game);
     bool CheckWin(char[] board, char symbol);
+    Task UpdatePlayerStatsAsync(Guid playerXId, Guid playerOId, Guid? winnerId);
 }

@@ -20,18 +20,14 @@ public class GameHub : Hub
     public async Task<GameSession> CreateGame()
     {
         var game = await _gameService.CreateGameAsync(UserId);
-
         await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
-
         return game;
     }
 
     public async Task<GameSession> JoinGame(string gameId)
     {
         var game = await _gameService.JoinGameAsync(Guid.Parse(gameId), UserId);
-
         await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-
         await Clients.Group(gameId).SendAsync("GameUpdated", game);
 
         if (game.Status == GameStatus.InProgress)
@@ -45,7 +41,6 @@ public class GameHub : Hub
     public async Task<GameSession> MakeMove(string gameId, int cellIndex)
     {
         var game = await _gameService.MakeMoveAsync(Guid.Parse(gameId), UserId, cellIndex);
-
         await Clients.Group(gameId).SendAsync("GameUpdated", game);
 
         if (game.Status == GameStatus.InProgress)
@@ -76,18 +71,25 @@ public class GameHub : Hub
     }
 
     private async Task HandleTimeout(Guid gameId)
-    {
-        var game = await _gameService.GetGameAsync(gameId);
-        if (game == null || game.Status != GameStatus.InProgress)
-            return;
+{
+    var game = await _gameService.GetGameAsync(gameId);
+    if (game == null || game.Status != GameStatus.InProgress || game.PlayerOId == null)
+        return;
 
-        game.Status = GameStatus.Timeout;
-        await _gameService.SaveGameAsync(game);
+    Guid winnerId = game.CurrentTurn == "X" ? game.PlayerOId.Value : game.PlayerXId;
 
-        await Clients.Group(gameId.ToString()).SendAsync("GameTimeout", game);
+    game.Status = GameStatus.Timeout;
+    game.WinnerId = winnerId;
+    game.WinnerSymbol = game.PlayerXId == winnerId ? "X" : "O";
 
-        StopTimer(gameId);
-    }
+    await _gameService.UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId.Value, winnerId);
+    await _gameService.SaveGameAsync(game);
+
+    await Clients.Group(gameId.ToString()).SendAsync("GameUpdated", game);
+    await Clients.Group(gameId.ToString()).SendAsync("GameTimeout", game);
+
+    StopTimer(gameId);
+}
 
     private void StopTimer(Guid gameId)
     {
