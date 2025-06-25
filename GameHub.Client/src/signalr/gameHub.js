@@ -1,5 +1,4 @@
 import * as signalR from "@microsoft/signalr";
-import { useAuth } from "../context/AuthContext";
 
 let connection = null;
 
