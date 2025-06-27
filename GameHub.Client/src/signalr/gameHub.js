@@ -1,14 +1,11 @@
 import * as signalR from "@microsoft/signalr";
 
-let connection = null;
-
-export const createHubConnection = (token) => {
-  connection = new signalR.HubConnectionBuilder()
+export function createHubConnection(token) {
+  return new signalR.HubConnectionBuilder()
     .withUrl("https://localhost:5001/gamehub", {
-      accessTokenFactory: () => token,
+      accessTokenFactory: () => token
     })
     .withAutomaticReconnect()
+    .configureLogging(signalR.LogLevel.Information)
     .build();
-
-  return connection;
-};
+}

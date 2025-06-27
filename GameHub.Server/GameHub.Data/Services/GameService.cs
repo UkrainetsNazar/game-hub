@@ -8,7 +8,7 @@ public class GameService(AppDbContext context) : IGameService
         {
             PlayerXId = playerXId,
             Status = GameStatus.WaitingForOpponent,
-            Board = "_________",
+            Board = new string('_', 9),
             CurrentTurn = "X",
             LastMoveTime = DateTime.UtcNow
         };
@@ -23,6 +23,9 @@ public class GameService(AppDbContext context) : IGameService
         var game = await GetGameAsync(gameId);
         if (game == null || game.PlayerOId != null)
             throw new Exception("Game is not joinable.");
+
+        if (game.PlayerXId == playerOId)
+            throw new Exception("You cannot join your own game.");
 
         game.PlayerOId = playerOId;
         game.Status = GameStatus.InProgress;
@@ -48,17 +51,18 @@ public class GameService(AppDbContext context) : IGameService
 
         var board = game.Board.ToCharArray();
         if (cellIndex < 0 || cellIndex >= 9 || board[cellIndex] != '_')
-            throw new Exception("Cell is already occupied");
+            throw new Exception("Invalid move");
 
         board[cellIndex] = symbol;
         game.Board = new string(board);
+        game.CurrentTurn = symbol == 'X' ? "O" : "X";
+        game.LastMoveTime = DateTime.UtcNow;
 
         if (CheckWin(board, symbol))
         {
             game.Status = GameStatus.Won;
             game.WinnerId = playerId;
             game.WinnerSymbol = symbol.ToString();
-
             await UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId!.Value, playerId);
         }
         else if (!board.Contains('_'))
@@ -66,7 +70,6 @@ public class GameService(AppDbContext context) : IGameService
             game.Status = GameStatus.Draw;
             game.WinnerId = null;
             game.WinnerSymbol = null;
-
             await UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId!.Value, null);
         }
 

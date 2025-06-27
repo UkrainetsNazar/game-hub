@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import Board from "../components/Board";
 
 export default function GamePage() {
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const [hub, setHub] = useState(null);
     const [game, setGame] = useState(null);
     const [joinGameId, setJoinGameId] = useState("");
@@ -30,7 +30,7 @@ export default function GamePage() {
         return () => {
             connection.stop();
         };
-    }, []);
+    }, [token]);
 
     const makeMove = (i) => {
         if (hub && game?.status === 1) {
@@ -39,9 +39,11 @@ export default function GamePage() {
     };
 
     function getMySymbol(game) {
-        if (!game || !game.playerOId) return null;
+        if (!game || !user) return null;
 
-        return game.playerXId === game.playerOId ? "O" : "X";
+        if (game.playerXId === user.id) return "X";
+        if (game.playerOId === user.id) return "O";
+        return null;
     }
 
     function getGameResult(game) {
@@ -49,13 +51,13 @@ export default function GamePage() {
         if (!game || !mySymbol) return null;
 
         switch (game.status) {
-            case 2:
+            case 2: // Won
                 return game.winnerSymbol === mySymbol
                     ? "🎉 You won!"
                     : "😞 You lost.";
-            case 3:
+            case 3: // Draw
                 return "🤝 Draw.";
-            case 4:
+            case 4: // Timeout
                 return game.winnerSymbol === mySymbol
                     ? "🎉 Opponent timed out — you win!"
                     : "⏰ You ran out of time — you lose.";
