@@ -69,41 +69,49 @@ export default function GamePage() {
     if (!game) return <div>Loading game...</div>;
 
     return (
-        <div className="flex flex-col items-center mt-6">
-            <input
-                type="text"
-                placeholder="Enter Game ID"
-                value={joinGameId}
-                onChange={(e) => setJoinGameId(e.target.value)}
-                className="border px-2 py-1"
-            />
-            <button
-                className="mt-2 bg-blue-500 text-white px-4 py-2 rounded"
-                onClick={async () => {
-                    try {
-                        const joinedGame = await hub.invoke("JoinGame", joinGameId);
-                        setGame(joinedGame);
-                        setJoinError("");
-                    } catch (err) {
-                        console.error(err);
-                        setJoinError("Can’t join to this game.");
-                    }
-                }}
-            >
-                Join Game
-            </button>
-            {joinError && <p className="text-red-500 mt-2">{joinError}</p>}
+        <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4">
+            <h1 className="text-3xl font-bold mb-4 text-indigo-700">Tic Tac Toe</h1>
 
-            <Board board={game.board} onCellClick={makeMove} />
+            {game ? (
+                <>
+                    <Board game={game} isMyTurn={isMyTurn} hub={hub} />
 
-            <p className="mt-4 text-lg">Turn: {game.currentTurn}</p>
-            <p className="text-gray-600">Status: {GameStatusText(game.status)}</p>
+                    <div className="mt-4 text-center">
+                        <p className="text-lg">
+                            <span className="font-semibold">Current Turn:</span>{" "}
+                            <span className={isMyTurn ? "text-green-600" : "text-gray-600"}>
+                                {game.currentTurn} {isMyTurn && "(Your move)"}
+                            </span>
+                        </p>
+                        <p className="text-sm text-gray-500">Status: {GameStatusText(game.status)}</p>
+                    </div>
 
-            {game.status >= 2 && (
-                <div className="mt-4 text-xl font-bold text-center text-indigo-600">
-                    {getGameResult(game)}
-                </div>
+                    {game.status >= 2 && (
+                        <div className="mt-6 p-4 bg-white rounded-xl shadow text-xl font-bold text-center text-indigo-600">
+                            {getGameResult(game)}
+                        </div>
+                    )}
+                </>
+            ) : (
+                <p className="text-gray-600 text-xl">Loading game...</p>
             )}
+
+            <div className="mt-10 w-full max-w-xs">
+                <input
+                    type="text"
+                    placeholder="Enter Game ID to join"
+                    value={joinGameId}
+                    onChange={(e) => setJoinGameId(e.target.value)}
+                    className="w-full border px-3 py-2 rounded shadow-sm"
+                />
+                <button
+                    onClick={joinGame}
+                    className="w-full mt-2 bg-blue-500 text-white py-2 rounded hover:bg-blue-600 transition"
+                >
+                    Join Game
+                </button>
+                {joinError && <p className="text-red-500 mt-2">{joinError}</p>}
+            </div>
         </div>
     );
 }

@@ -85,7 +85,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ClientAppPolicy", builder =>
     {
-        builder.WithOrigins("http://my-client-url")
+        builder.WithOrigins("http://localhost:5173")
                .AllowAnyHeader()
                .AllowAnyMethod()
                .AllowCredentials();

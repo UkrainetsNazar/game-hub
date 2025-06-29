@@ -27,20 +27,23 @@ public class AuthService(AppDbContext dbContext, JwtService jwtService)
         return user;
     }
 
-    public async Task<string> Login(LoginDto request)
+    public async Task<string?> Login(LoginDto request)
     {
-        var user = await _dbContext.Players.FirstOrDefaultAsync(u => u.UserName == request.UserName)
-        ?? throw new Exception("Username or password is incorrect");
+        var user = await _dbContext.Players.FirstOrDefaultAsync(u => u.UserName == request.UserName);
+
+        if (user == null)
+            return null;
 
         using var hmac = new HMACSHA256(user.PasswordSalt!);
         var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(request.Password!));
 
         if (!computedHash.SequenceEqual(user.PasswordHash!))
-            throw new Exception("Username or password is incorrect");
+            return null;
 
         var token = _jwtService.GenerateToken(user.Id, user.UserName!);
         return token;
     }
+
 
     public async Task<PlayerProfileDto> GetProfileAsync(Guid userId)
     {

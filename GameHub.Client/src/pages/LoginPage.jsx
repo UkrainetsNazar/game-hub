@@ -4,17 +4,30 @@ import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
 
   const submit = async (e) => {
     e.preventDefault();
-    const endpoint = isRegistering ? "/api/auth/register" : "/api/auth/login";
+
+    if (isRegistering && form.password !== form.confirmPassword) {
+      setError("Passwords do not match");
+      return;
+    }
+
+    const endpoint = isRegistering
+      ? "http://localhost:5216/api/auth/register"
+      : "http://localhost:5216/api/auth/login";
 
     try {
-      const res = await axios.post(endpoint, form);
+      const res = await axios.post(endpoint, {
+        username: form.username,
+        password: form.password,
+      });
+
       login(res.data.token);
+      setError("");
     } catch (err) {
       setError("Auth error");
     }
@@ -22,23 +35,56 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-sm mx-auto mt-20">
-      <form onSubmit={submit} className="flex flex-col gap-4">
+      <form onSubmit={submit} className="flex flex-col gap-4 p-4 border rounded shadow">
+        <h2 className="text-xl font-semibold text-center">
+          {isRegistering ? "Register" : "Login"}
+        </h2>
+
         <input
           placeholder="Username"
           value={form.username}
           onChange={(e) => setForm({ ...form, username: e.target.value })}
+          className="border px-3 py-2 rounded"
         />
+
         <input
           placeholder="Password"
           type="password"
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
+          className="border px-3 py-2 rounded"
         />
-        <button type="submit">{isRegistering ? "Register" : "Login"}</button>
-        <button type="button" onClick={() => setIsRegistering(!isRegistering)}>
-          {isRegistering ? "Already have account?" : "Create new account"}
+
+        {isRegistering && (
+          <input
+            placeholder="Repeat Password"
+            type="password"
+            value={form.confirmPassword}
+            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+            className="border px-3 py-2 rounded"
+          />
+        )}
+
+        <button
+          type="submit"
+          className="bg-blue-500 hover:bg-blue-600 text-white py-2 rounded"
+        >
+          {isRegistering ? "Register" : "Login"}
         </button>
-        {error && <p className="text-red-500">{error}</p>}
+
+        <button
+          type="button"
+          onClick={() => {
+            setIsRegistering(!isRegistering);
+            setForm({ username: "", password: "", confirmPassword: "" });
+            setError("");
+          }}
+          className="text-blue-600 underline text-sm"
+        >
+          {isRegistering ? "Already have an account?" : "Create new account"}
+        </button>
+
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
       </form>
     </div>
   );

@@ -2,7 +2,7 @@ import * as signalR from "@microsoft/signalr";
 
 export function createHubConnection(token) {
   return new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:5001/gamehub", {
+    .withUrl("http://localhost:5216/gamehub", {
       accessTokenFactory: () => token
     })
     .withAutomaticReconnect()

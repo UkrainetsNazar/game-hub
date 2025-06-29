@@ -26,7 +26,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     if (token) {
       const parsed = parseJwt(token);
-      // Припустимо, що в токені user id лежить у sub (може бути інше поле, залежно від бекенду)
       setUser(parsed ? { id: parsed.sub, ...parsed } : null);
     } else {
       setUser(null);
