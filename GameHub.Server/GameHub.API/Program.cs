@@ -21,7 +21,6 @@ builder.Services.AddSwaggerGen(swagger =>
         Title = "ASP.NET Core Web API"
     });
 
-    // 🔐 Правильне визначення схеми безпеки
     swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -32,7 +31,6 @@ builder.Services.AddSwaggerGen(swagger =>
         Description = "Enter 'Bearer' [space] and then your valid token."
     });
 
-    // 📌 Вимога безпеки — вказує, що всі запити можуть використовувати цю схему
     swagger.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -50,26 +48,35 @@ builder.Services.AddSwaggerGen(swagger =>
 });
 
 // 🔑 Setting JWT
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ClockSkew = TimeSpan.Zero,
-        ValidIssuer = builder.Configuration["JwtOptions:Issuer"],
-        ValidAudience = builder.Configuration["JwtOptions:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:Key"]!))
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidIssuer = "GameHub",
+            ValidAudience = "GameHubUsers",
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:Key"]!))
+        };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/gamehub"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 //Scopes
 builder.Services.AddScoped<AuthService>();
