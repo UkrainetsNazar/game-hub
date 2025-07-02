@@ -13,8 +13,10 @@ public class JwtService(IOptions<JwtOptions> options)
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(ClaimTypes.NameIdentifier, userName)
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+            new Claim(ClaimTypes.Name, userName)
         };
+
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.Key!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

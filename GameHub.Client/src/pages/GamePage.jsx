@@ -15,15 +15,37 @@ export default function GamePage() {
     const navigate = useNavigate();
 
     useEffect(() => {
+
+        if (!token) {
+            console.error("No token available");
+            navigate("/login");
+            return;
+        }
+
         const connection = createHubConnection(token);
+
+        connection.onclose((error) => {
+            if (error?.statusCode === 401) {
+                alert("Сесія закінчилася. Увійдіть знову.");
+                navigate("/login");
+            }
+        });
+
         setHub(connection);
 
-        connection
-            .start()
-            .then(() => {
+        connection.start().then(async () => {
+            try {
+                const username = await connection.invoke("WhoAmI");
+                console.log("✅ Connected as:", username);
                 connection.invoke("CreateGame").then(setGame);
-            })
-            .catch((err) => console.error("Connection error:", err));
+            } catch (err) {
+                console.error("❌ Unauthorized:", err);
+                navigate("/login");
+            }
+        }).catch(err => {
+            console.error("❌ Connection failed:", err);
+            navigate("/login");
+        });
 
         connection.on("GameUpdated", (updatedGame) => {
             setGame(updatedGame);

@@ -26,6 +26,18 @@ public class GameHub : Hub
         _gameService = gameService;
     }
 
+    public string WhoAmI()
+    {
+        var userName = Context.User?.Identity?.Name;
+
+        if (string.IsNullOrEmpty(userName))
+        {
+            throw new HubException("Unauthorized");
+        }
+
+        return userName;
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         if (_connectionToGame.TryRemove(Context.ConnectionId, out var gameIdStr) && Guid.TryParse(gameIdStr, out var gameId))

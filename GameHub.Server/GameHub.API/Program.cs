@@ -9,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.Configure<JwtOptions>(
     builder.Configuration.GetSection("JwtOptions"));
 
+var jwtKey = builder.Configuration["JwtOptions:Key"]
+        ?? throw new InvalidOperationException("JWT Key is not configured.");
+
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("InMemoryDb"));
 
@@ -58,11 +62,21 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidIssuer = "GameHub",
             ValidAudience = "GameHubUsers",
             IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(builder.Configuration["JwtOptions:Key"]!))
+                Encoding.UTF8.GetBytes(jwtKey))
         };
 
         options.Events = new JwtBearerEvents
         {
+            OnAuthenticationFailed = context =>
+            {
+                Console.WriteLine($"Authentication failed: {context.Exception.Message}");
+                return Task.CompletedTask;
+            },
+            OnTokenValidated = context =>
+            {
+                Console.WriteLine("Token validated successfully");
+                return Task.CompletedTask;
+            },
             OnMessageReceived = context =>
             {
                 var accessToken = context.Request.Query["access_token"];
@@ -101,8 +115,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.MapHub<GameHub>("/gamehub");
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -118,5 +130,7 @@ app.UseAuthorization();
 
 // 📦 Map Controllers
 app.MapControllers();
+
+app.MapHub<GameHub>("/gamehub");
 
 app.Run();
