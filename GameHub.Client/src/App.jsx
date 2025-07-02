@@ -1,8 +1,8 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import GamePage from "./pages/GamePage";
 import { useAuth } from "./context/AuthContext";
 import './index.css';
+import MainPage from "./pages/MainPage";
 
 export default function App() {
   const { token } = useAuth();
@@ -11,9 +11,9 @@ export default function App() {
     <Router>
       <Routes>
         {!token ? (
-          <Route path="*" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} />
         ) : (
-          <Route path="*" element={<GamePage />} />
+          <Route path="/" element={<MainPage />} />
         )}
       </Routes>
     </Router>

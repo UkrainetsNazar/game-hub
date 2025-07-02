@@ -14,6 +14,19 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    private void SetRefreshTokenCookie(string refreshToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = true,
+            SameSite = SameSiteMode.Strict,
+            Expires = DateTime.UtcNow.AddDays(30)
+        };
+
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+    }
+
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto request)
     {
@@ -35,44 +48,64 @@ public class AuthController : ControllerBase
         if (tokens.AccessToken == null)
             return Unauthorized(new { message = "Username or password is incorrect" });
 
+        SetRefreshTokenCookie(tokens.RefreshToken);
+
         return Ok(new
         {
-            accessToken = tokens.AccessToken,
-            refreshToken = tokens.RefreshToken
+            accessToken = tokens.AccessToken
         });
     }
 
+
     [HttpPost("refresh-token")]
-    public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+    public async Task<IActionResult> RefreshToken()
     {
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(refreshToken))
+            return Unauthorized(new { message = "Refresh token cookie missing" });
+
         var tokens = await _authService.RefreshToken(refreshToken);
 
         if (tokens == null)
             return Unauthorized(new { message = "Invalid refresh token" });
 
+        SetRefreshTokenCookie(tokens.Value.RefreshToken);
+
         return Ok(new
         {
-            accessToken = tokens.Value.AccessToken,
-            refreshToken = tokens.Value.RefreshToken
+            accessToken = tokens.Value.AccessToken
         });
     }
 
-    [HttpPost("revoke-token")]
-    public async Task<IActionResult> RevokeToken([FromBody] string refreshToken)
+
+    [Authorize]
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
     {
-        var result = await _authService.RevokeRefreshToken(refreshToken);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+            return Unauthorized("Invalid user ID");
+
+        var refreshToken = Request.Cookies["refreshToken"];
+        if (string.IsNullOrEmpty(refreshToken))
+            return BadRequest("No refresh token cookie found.");
+
+        var result = await _authService.RevokeRefreshToken(refreshToken, userId);
 
         if (!result)
             return NotFound(new { message = "Token not found or already revoked" });
 
-        return Ok(new { message = "Token revoked" });
+        Response.Cookies.Delete("refreshToken");
+
+        return Ok(new { message = "Logged out successfully" });
     }
 
     [Authorize]
     [HttpGet("profile")]
     public async Task<IActionResult> Profile()
     {
-        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null)
         {
             return Unauthorized("UserId is not found.");

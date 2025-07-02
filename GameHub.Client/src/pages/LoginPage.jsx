@@ -1,14 +1,14 @@
 import { useState } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import Endpoints from "../api/Endpoints";
 
-export default function LoginPage() {
-  const { login } = useAuth();
+const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
 
-  const submit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (isRegistering && form.password !== form.confirmPassword) {
@@ -17,8 +17,8 @@ export default function LoginPage() {
     }
 
     const endpoint = isRegistering
-      ? "http://localhost:5216/api/auth/register"
-      : "http://localhost:5216/api/auth/login";
+      ? Endpoints.AUTH.REGISTER
+      : Endpoints.AUTH.LOGIN;
 
     try {
       const res = await axios.post(endpoint, {
@@ -26,7 +26,8 @@ export default function LoginPage() {
         password: form.password,
       });
 
-      login(res.data.token);
+      // Save access token in storage
+
       setError("");
     } catch (err) {
       setError("Auth error");
@@ -35,7 +36,7 @@ export default function LoginPage() {
 
   return (
     <div className="max-w-sm mx-auto mt-20">
-      <form onSubmit={submit} className="flex flex-col gap-4 p-4 border rounded shadow">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4 border rounded shadow">
         <h2 className="text-xl font-semibold text-center">
           {isRegistering ? "Register" : "Login"}
         </h2>
@@ -88,4 +89,6 @@ export default function LoginPage() {
       </form>
     </div>
   );
-}
+};
+
+export default LoginPage;  

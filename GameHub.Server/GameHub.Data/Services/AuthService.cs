@@ -83,16 +83,23 @@ public class AuthService(AppDbContext dbContext, JwtService jwtService)
         return (newAccessToken, newRefreshToken.Token);
     }
 
-    public async Task<bool> RevokeRefreshToken(string token)
+    public async Task<bool> RevokeRefreshToken(string? token, Guid userId)
     {
-        var refreshToken = await _dbContext.RefreshTokens.FirstOrDefaultAsync(rt => rt.Token == token);
-        if (refreshToken == null || !refreshToken.IsActive) return false;
+        if (string.IsNullOrEmpty(token)) return false;
+
+        var refreshToken = await _dbContext.RefreshTokens
+            .Include(rt => rt.Player)
+            .FirstOrDefaultAsync(rt => rt.Token == token && rt.Player.Id == userId);
+
+        if (refreshToken == null || !refreshToken.IsActive)
+            return false;
 
         refreshToken.Revoked = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
 
+        await _dbContext.SaveChangesAsync();
         return true;
     }
+
 
      public async Task<PlayerProfileDto> GetProfileAsync(Guid userId)
     {
