@@ -25,7 +25,7 @@ public class JwtService(IOptions<JwtOptions> options)
             issuer: _options.Issuer,
             audience: _options.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(24),
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: creds
         );
 

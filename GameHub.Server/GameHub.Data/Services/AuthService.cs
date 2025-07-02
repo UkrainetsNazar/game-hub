@@ -56,7 +56,7 @@ public class AuthService(AppDbContext dbContext, JwtService jwtService)
         return new RefreshToken
         {
             Token = Convert.ToBase64String(randomBytes),
-            Expires = DateTime.UtcNow.AddDays(7),
+            Expires = DateTime.UtcNow.AddDays(30),
             Created = DateTime.UtcNow
         };
     }
