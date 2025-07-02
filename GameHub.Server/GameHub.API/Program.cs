@@ -12,7 +12,6 @@ builder.Services.Configure<JwtOptions>(
 var jwtKey = builder.Configuration["JwtOptions:Key"]
         ?? throw new InvalidOperationException("JWT Key is not configured.");
 
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseInMemoryDatabase("InMemoryDb"));
 

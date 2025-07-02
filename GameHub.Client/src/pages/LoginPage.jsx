@@ -1,12 +1,13 @@
 import { useState } from "react";
-import axios from "axios";
-import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import Endpoints from "../api/Endpoints";
+import axiosInstance from "../api/AxiosInstance";
 
 const LoginPage = () => {
   const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,16 +22,18 @@ const LoginPage = () => {
       : Endpoints.AUTH.LOGIN;
 
     try {
-      const res = await axios.post(endpoint, {
+      const res = await axiosInstance.post(endpoint, {
         username: form.username,
         password: form.password,
       });
 
-      // Save access token in storage
-
+      const token = res.data.accessToken;
+      localStorage.setItem("token", token);
       setError("");
+
+      navigate("/");
     } catch (err) {
-      setError("Auth error");
+      setError(err.response?.data?.message || "Auth error");
     }
   };
 
@@ -91,4 +94,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;  
+export default LoginPage;
