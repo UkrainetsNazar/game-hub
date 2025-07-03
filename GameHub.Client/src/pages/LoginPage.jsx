@@ -4,7 +4,11 @@ import Endpoints from "../api/Endpoints";
 import axiosInstance from "../api/AxiosInstance";
 
 const LoginPage = () => {
-  const [form, setForm] = useState({ username: "", password: "", confirmPassword: "" });
+  const [form, setForm] = useState({
+    username: "",
+    password: "",
+    confirmPassword: "",
+  });
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -27,9 +31,13 @@ const LoginPage = () => {
         password: form.password,
       });
 
-      const token = res.data.accessToken;
-      localStorage.setItem("token", token);
-      setError("");
+      if (res.data.accessToken) {
+        const token = res.data.accessToken;
+        localStorage.setItem("token", token);
+        setError("");
+      } else {
+        setError("Error while setting token");
+      }
 
       navigate("/");
     } catch (err) {
@@ -39,7 +47,10 @@ const LoginPage = () => {
 
   return (
     <div className="max-w-sm mx-auto mt-20">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4 border rounded shadow">
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 p-4 border rounded shadow"
+      >
         <h2 className="text-xl font-semibold text-center">
           {isRegistering ? "Register" : "Login"}
         </h2>
@@ -64,7 +75,9 @@ const LoginPage = () => {
             placeholder="Repeat Password"
             type="password"
             value={form.confirmPassword}
-            onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+            onChange={(e) =>
+              setForm({ ...form, confirmPassword: e.target.value })
+            }
             className="border px-3 py-2 rounded"
           />
         )}
