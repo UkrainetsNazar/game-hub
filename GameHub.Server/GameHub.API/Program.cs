@@ -73,7 +73,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             },
             OnTokenValidated = context =>
             {
-                Console.WriteLine("Token validated successfully");
                 return Task.CompletedTask;
             },
             OnMessageReceived = context =>
