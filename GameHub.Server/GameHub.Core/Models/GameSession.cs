@@ -12,6 +12,8 @@ public class GameSession
     public string CurrentTurn { get; set; } = "X";
     public GameStatus Status { get; set; } = GameStatus.WaitingForOpponent;
     public DateTime LastMoveTime { get; set; } = DateTime.UtcNow;
+    public string? PlayerXName { get; set; }
+    public string? PlayerOName { get; set; }
 
     public Guid? WinnerId { get; set; }
     public string? WinnerSymbol { get; set; }

@@ -68,10 +68,15 @@ public class GameHub : Hub
     public async Task<GameSession> CreateGame()
     {
         var game = await _gameService.CreateGameAsync(UserId);
+
+        game.PlayerXName = Context.User?.Identity?.Name;
+
         await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
         _connectionToGame[Context.ConnectionId] = game.Id.ToString();
+
         return game;
     }
+
 
     public async Task<GameSession> JoinGame(string gameId)
     {
@@ -86,6 +91,10 @@ public class GameHub : Hub
             throw new HubException("Game room is full.");
 
         var updatedGame = await _gameService.JoinGameAsync(parsedGameId, UserId);
+
+        updatedGame.PlayerXName ??= Context.User?.Identity?.Name;
+        updatedGame.PlayerOName = Context.User?.Identity?.Name;
+
         await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
         _connectionToGame[Context.ConnectionId] = gameId;
 
@@ -99,12 +108,24 @@ public class GameHub : Hub
         return updatedGame;
     }
 
+
     public async Task<GameSession> MakeMove(string gameId, int cellIndex)
     {
         if (!Guid.TryParse(gameId, out var parsedGameId))
             throw new HubException("Invalid game ID.");
 
         var game = await _gameService.MakeMoveAsync(parsedGameId, UserId, cellIndex);
+
+        if (string.IsNullOrWhiteSpace(game.PlayerXName) && game.PlayerXId == UserId)
+        {
+            game.PlayerXName = Context.User?.Identity?.Name;
+        }
+
+        if (string.IsNullOrWhiteSpace(game.PlayerOName) && game.PlayerOId == UserId)
+        {
+            game.PlayerOName = Context.User?.Identity?.Name;
+        }
+
         await Clients.Group(gameId).SendAsync("GameUpdated", game);
 
         if (game.Status == GameStatus.InProgress)
@@ -118,6 +139,7 @@ public class GameHub : Hub
 
         return game;
     }
+
 
     private void StartTurnTimer(Guid gameId)
     {
