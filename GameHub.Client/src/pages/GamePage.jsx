@@ -22,19 +22,20 @@ const GamePage = () => {
       hub.on("GameTimeout", () => setTimeoutMessage("Timeout!"));
 
       await hub.start();
-
       const user = await hub.invoke("WhoAmI");
       setWhoAmI(user);
 
       let session;
+
       if (gameId === "temp") {
         session = await hub.invoke("CreateGame");
         navigate(`/game/${session.id}`, { replace: true });
+        setGame(session);
       } else {
         session = await hub.invoke("JoinGame", gameId);
+        setGame(session);
       }
 
-      setGame(session);
       setLoading(false);
     };
 

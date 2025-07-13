@@ -13,7 +13,7 @@ var jwtKey = builder.Configuration["JwtOptions:Key"]
         ?? throw new InvalidOperationException("JWT Key is not configured.");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("InMemoryDb"));
+    options.UseInMemoryDatabase("GameHub"), ServiceLifetime.Singleton);
 
 //Swagger
 builder.Services.AddSwaggerGen(swagger =>
@@ -94,6 +94,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IGameService, GameService>();
+builder.Services.AddScoped<IGameNotifier, GameNotifier>();
 
 builder.Services.AddSignalR();
 builder.Services.AddControllers();

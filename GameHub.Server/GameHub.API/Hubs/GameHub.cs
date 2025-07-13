@@ -9,6 +9,7 @@ public class GameHub : Hub
     private readonly IGameService _gameService;
     private static readonly ConcurrentDictionary<Guid, Timer> _gameTimers = new();
     private static readonly ConcurrentDictionary<string, string> _connectionToGame = new();
+    private readonly IServiceScopeFactory _scopeFactory;
 
     private Guid UserId
     {
@@ -21,9 +22,10 @@ public class GameHub : Hub
         }
     }
 
-    public GameHub(IGameService gameService)
+    public GameHub(IGameService gameService, IServiceScopeFactory scopeFactory)
     {
         _gameService = gameService;
+        _scopeFactory = scopeFactory;
     }
 
     public string WhoAmI()
@@ -65,20 +67,19 @@ public class GameHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task<GameSession> CreateGame()
+    public async Task<GameDto> CreateGame()
     {
         var game = await _gameService.CreateGameAsync(UserId);
-
         game.PlayerXName = Context.User?.Identity?.Name;
 
         await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
         _connectionToGame[Context.ConnectionId] = game.Id.ToString();
 
-        return game;
+        return GameMapper.ToDto(game);
     }
 
 
-    public async Task<GameSession> JoinGame(string gameId)
+    public async Task<GameDto> JoinGame(string gameId)
     {
         if (!Guid.TryParse(gameId, out var parsedGameId))
             throw new HubException("Invalid game ID.");
@@ -92,24 +93,31 @@ public class GameHub : Hub
 
         var updatedGame = await _gameService.JoinGameAsync(parsedGameId, UserId);
 
-        updatedGame.PlayerXName ??= Context.User?.Identity?.Name;
-        updatedGame.PlayerOName = Context.User?.Identity?.Name;
+        var userName = Context.User?.Identity?.Name;
+
+        if (updatedGame.PlayerXId == UserId)
+        {
+            updatedGame.PlayerXName = userName;
+        }
+        else if (updatedGame.PlayerOId == UserId)
+        {
+            updatedGame.PlayerOName = userName;
+        }
 
         await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
         _connectionToGame[Context.ConnectionId] = gameId;
 
-        await Clients.Group(gameId).SendAsync("GameUpdated", updatedGame);
+        await Clients.Group(gameId).SendAsync("GameUpdated", GameMapper.ToDto(updatedGame));
 
         if (updatedGame.Status == GameStatus.InProgress)
         {
             StartTurnTimer(updatedGame.Id);
         }
 
-        return updatedGame;
+        return GameMapper.ToDto(updatedGame);
     }
 
-
-    public async Task<GameSession> MakeMove(string gameId, int cellIndex)
+    public async Task<GameDto> MakeMove(string gameId, int cellIndex)
     {
         if (!Guid.TryParse(gameId, out var parsedGameId))
             throw new HubException("Invalid game ID.");
@@ -126,7 +134,9 @@ public class GameHub : Hub
             game.PlayerOName = Context.User?.Identity?.Name;
         }
 
-        await Clients.Group(gameId).SendAsync("GameUpdated", game);
+        var dto = GameMapper.ToDto(game);
+
+        await Clients.Group(gameId).SendAsync("GameUpdated", dto);
 
         if (game.Status == GameStatus.InProgress)
         {
@@ -137,9 +147,8 @@ public class GameHub : Hub
             StopTimer(game.Id);
         }
 
-        return game;
+        return dto;
     }
-
 
     private void StartTurnTimer(Guid gameId)
     {
@@ -165,7 +174,11 @@ public class GameHub : Hub
 
     private async Task HandleTimeout(Guid gameId)
     {
-        var game = await _gameService.GetGameAsync(gameId);
+        using var scope = _scopeFactory.CreateScope();
+        var gameService = scope.ServiceProvider.GetRequiredService<IGameService>();
+        var notifier = scope.ServiceProvider.GetRequiredService<IGameNotifier>();
+
+        var game = await gameService.GetGameAsync(gameId);
         if (game == null || game.Status != GameStatus.InProgress || game.PlayerOId == null)
             return;
 
@@ -176,11 +189,11 @@ public class GameHub : Hub
         game.WinnerId = winnerId;
         game.WinnerSymbol = winnerSymbol;
 
-        await _gameService.UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId.Value, winnerId);
-        await _gameService.SaveGameAsync(game);
+        await gameService.UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId.Value, winnerId);
+        await gameService.SaveGameAsync(game);
 
-        await Clients.Group(gameId.ToString()).SendAsync("GameUpdated", game);
-        await Clients.Group(gameId.ToString()).SendAsync("GameTimeout", game);
+        await notifier.NotifyGameUpdated(game);
+        await notifier.NotifyGameTimeout(game);
 
         StopTimer(gameId);
     }
