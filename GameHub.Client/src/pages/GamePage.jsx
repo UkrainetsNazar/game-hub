@@ -10,9 +10,12 @@ const GamePage = () => {
   const [whoAmI, setWhoAmI] = useState("");
   const [loading, setLoading] = useState(true);
   const [timeoutMessage, setTimeoutMessage] = useState("");
+  const [initialized, setInitialized] = useState(false);
   const hubRef = useRef(null);
 
   useEffect(() => {
+    if (initialized) return;
+
     const start = async () => {
       const token = localStorage.getItem("token");
       const hub = createHubConnection(token);
@@ -29,11 +32,20 @@ const GamePage = () => {
 
       if (gameId === "temp") {
         session = await hub.invoke("CreateGame");
-        navigate(`/game/${session.id}`, { replace: true });
         setGame(session);
-      } else {
+        setInitialized(true);
+        navigate(`/game/${session.id}`, { replace: true });
+        setLoading(false);
+        return;
+      }
+
+      try {
         session = await hub.invoke("JoinGame", gameId);
         setGame(session);
+        setInitialized(true);
+      } catch (error) {
+        console.error("Failed to join game:", error);
+        setInitialized(true);
       }
 
       setLoading(false);
@@ -44,7 +56,36 @@ const GamePage = () => {
     return () => {
       hubRef.current?.stop();
     };
-  }, [gameId, navigate]);
+  }, [gameId, navigate, initialized]);
+
+  useEffect(() => {
+    if (!initialized || gameId === "temp") return;
+
+    const reconnect = async () => {
+      if (hubRef.current) {
+        try {
+          // Перевіряємо, чи вже є гра з таким ID
+          const existingGame = await hubRef.current.invoke("GetGame", gameId);
+          if (existingGame) {
+            setGame(existingGame);
+            return;
+          }
+        } catch (error) {
+          console.log("Game not found or error getting game:", error);
+        }
+
+        // Тільки якщо гра не знайдена або це новий gameId
+        try {
+          const session = await hubRef.current.invoke("JoinGame", gameId);
+          setGame(session);
+        } catch (error) {
+          console.error("Failed to join game:", error);
+        }
+      }
+    };
+
+    reconnect();
+  }, [gameId, initialized]);
 
   const isMyTurn = () => {
     if (!game || !whoAmI) return false;
