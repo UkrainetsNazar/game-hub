@@ -126,7 +126,7 @@ const GamePage = () => {
         </>
       )}
 
-      {game.status === 2 && <p className="text-green-600">Game Over. Winner: {game.winnerSymbol}</p>}
+      {game.status === 2 && <p className="text-green-600">Game Over. Winner: {game.winnerName}</p>}
       {game.status === 3 && <p className="text-red-500">{timeoutMessage}</p>}
     </div>
   );

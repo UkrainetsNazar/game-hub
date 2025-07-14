@@ -6,5 +6,5 @@ public class GameDto
     public string? PlayerOName { get; set; }
     public string CurrentTurn { get; set; } = "X";
     public int Status { get; set; }
-    public string? WinnerSymbol { get; set; }
+    public string? WinnerName { get; set; }
 }

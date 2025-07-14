@@ -48,11 +48,11 @@ public class GameHub : Hub
             if (game != null && game.Status == GameStatus.InProgress)
             {
                 Guid? winnerId = game.PlayerXId == UserId ? game.PlayerOId : game.PlayerXId;
-                string winnerSymbol = game.PlayerXId == winnerId ? "X" : "O";
+                string? winnerName = game.PlayerXId == winnerId ? game.PlayerXName : game.PlayerOName;
 
                 game.Status = GameStatus.Timeout;
                 game.WinnerId = winnerId;
-                game.WinnerSymbol = winnerSymbol;
+                game.WinnerName = winnerName;
 
                 await _gameService.UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId!.Value, winnerId);
                 await _gameService.SaveGameAsync(game);
@@ -189,11 +189,11 @@ public class GameHub : Hub
             return;
 
         var winnerId = game.CurrentTurn == "X" ? game.PlayerOId.Value : game.PlayerXId;
-        var winnerSymbol = game.PlayerXId == winnerId ? "X" : "O";
+        var winnerName = game.PlayerXId == winnerId ? game.PlayerXName : game.PlayerOName;
 
         game.Status = GameStatus.Timeout;
         game.WinnerId = winnerId;
-        game.WinnerSymbol = winnerSymbol;
+        game.WinnerName = winnerName;
 
         await gameService.UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId.Value, winnerId);
         await gameService.SaveGameAsync(game);

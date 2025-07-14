@@ -10,7 +10,7 @@ public static class GameMapper
             PlayerOName = game.PlayerOName,
             CurrentTurn = game.CurrentTurn,
             Status = (int)game.Status,
-            WinnerSymbol = game.WinnerSymbol
+            WinnerName = game.WinnerName
         };
     }
 }

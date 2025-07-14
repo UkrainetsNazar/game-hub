@@ -16,5 +16,5 @@ public class GameSession
     public string? PlayerOName { get; set; }
 
     public Guid? WinnerId { get; set; }
-    public string? WinnerSymbol { get; set; }
+    public string? WinnerName { get; set; }
 }
