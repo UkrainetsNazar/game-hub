@@ -10,82 +10,97 @@ const GamePage = () => {
   const [whoAmI, setWhoAmI] = useState("");
   const [loading, setLoading] = useState(true);
   const [timeoutMessage, setTimeoutMessage] = useState("");
-  const [initialized, setInitialized] = useState(false);
   const hubRef = useRef(null);
+  const connectionInitialized = useRef(false);
+  const isCreatingGame = useRef(false);
 
   useEffect(() => {
-    if (initialized) return;
+    const initializeConnection = async () => {
+      if (connectionInitialized.current && hubRef.current) {
+        if (gameId === "temp") return;
+        
+        if (isCreatingGame.current) {
+          isCreatingGame.current = false;
+          return;
+        }
 
-    const start = async () => {
-      const token = localStorage.getItem("token");
-      const hub = createHubConnection(token);
-      hubRef.current = hub;
+        try {
+          console.log("Attempting to join existing game:", gameId);
+          const session = await hubRef.current.invoke("JoinGame", gameId);
+          setGame(session);
+        } catch (error) {
+          console.error("Failed to join game:", error);
+        }
+        setLoading(false);
+        return;
+      }
 
-      hub.on("GameUpdated", setGame);
-      hub.on("GameTimeout", () => setTimeoutMessage("Timeout!"));
+      if (!hubRef.current) {
+        const token = localStorage.getItem("token");
+        const hub = createHubConnection(token);
+        hubRef.current = hub;
 
-      await hub.start();
-      const user = await hub.invoke("WhoAmI");
+        hub.on("GameUpdated", (updatedGame) => {
+          console.log("Game updated:", updatedGame);
+          setGame(updatedGame);
+        });
+        
+        hub.on("GameTimeout", () => setTimeoutMessage("Timeout!"));
+
+        try {
+          await hub.start();
+          connectionInitialized.current = true;
+        } catch (error) {
+          console.error("Failed to start connection:", error);
+          setLoading(false);
+          return;
+        }
+      }
+
+      const user = await hubRef.current.invoke("WhoAmI");
       setWhoAmI(user);
 
-      let session;
-
       if (gameId === "temp") {
-        session = await hub.invoke("CreateGame");
+        console.log("Creating new game");
+        isCreatingGame.current = true;
+        const session = await hubRef.current.invoke("CreateGame");
         setGame(session);
-        setInitialized(true);
         navigate(`/game/${session.id}`, { replace: true });
         setLoading(false);
         return;
       }
 
       try {
-        session = await hub.invoke("JoinGame", gameId);
+        console.log("Joining existing game:", gameId);
+        const session = await hubRef.current.invoke("JoinGame", gameId);
         setGame(session);
-        setInitialized(true);
       } catch (error) {
         console.error("Failed to join game:", error);
-        setInitialized(true);
       }
 
       setLoading(false);
     };
 
-    start();
+    initializeConnection();
 
     return () => {
-      hubRef.current?.stop();
-    };
-  }, [gameId, navigate, initialized]);
-
-  useEffect(() => {
-    if (!initialized || gameId === "temp") return;
-
-    const reconnect = async () => {
-      if (hubRef.current) {
-        try {
-          // Перевіряємо, чи вже є гра з таким ID
-          const existingGame = await hubRef.current.invoke("GetGame", gameId);
-          if (existingGame) {
-            setGame(existingGame);
-            return;
-          }
-        } catch (error) {
-          console.log("Game not found or error getting game:", error);
-        }
-
-        // Тільки якщо гра не знайдена або це новий gameId
-        try {
-          const session = await hubRef.current.invoke("JoinGame", gameId);
-          setGame(session);
-        } catch (error) {
-          console.error("Failed to join game:", error);
-        }
+      if (gameId === undefined) {
+        hubRef.current?.stop();
+        hubRef.current = null;
+        connectionInitialized.current = false;
       }
     };
+  }, [gameId, navigate]);
 
-    reconnect();
-  }, [gameId, initialized]);
+  useEffect(() => {
+    return () => {
+      if (hubRef.current) {
+        hubRef.current.stop();
+        hubRef.current = null;
+        connectionInitialized.current = false;
+      }
+    };
+  }, []);
 
   const isMyTurn = () => {
     if (!game || !whoAmI) return false;

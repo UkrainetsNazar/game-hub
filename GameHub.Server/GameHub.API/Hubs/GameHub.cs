@@ -75,9 +75,10 @@ public class GameHub : Hub
         await Groups.AddToGroupAsync(Context.ConnectionId, game.Id.ToString());
         _connectionToGame[Context.ConnectionId] = game.Id.ToString();
 
+        Console.WriteLine($"User {UserId} created game {game.Id} and joined group");
+
         return GameMapper.ToDto(game);
     }
-
 
     public async Task<GameDto> JoinGame(string gameId)
     {
@@ -90,6 +91,8 @@ public class GameHub : Hub
 
         if (game.PlayerOId != null)
             throw new HubException("Game room is full.");
+
+        Console.WriteLine($"User {UserId} attempting to join game {gameId}");
 
         var updatedGame = await _gameService.JoinGameAsync(parsedGameId, UserId);
 
@@ -106,6 +109,9 @@ public class GameHub : Hub
 
         await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
         _connectionToGame[Context.ConnectionId] = gameId;
+
+        Console.WriteLine($"User {UserId} successfully joined game {gameId}");
+        Console.WriteLine($"Sending GameUpdated to group {gameId}");
 
         await Clients.Group(gameId).SendAsync("GameUpdated", GameMapper.ToDto(updatedGame));
 
