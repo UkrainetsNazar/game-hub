@@ -5,10 +5,10 @@ The app features user authentication, game room creation/joining, time-limited m
 
 ## 📚 Table of Contents
 
-- [Features]()
-- [Built with]()
-- [Overview]()
-- [How to run]()
+- [Features](#features)
+- [Built with](#built-with)
+- [Overview](#overview)
+- [How to run](#how-to-run)
 
 ---
 
@@ -39,12 +39,27 @@ The app features user authentication, game room creation/joining, time-limited m
 ## ▶️ How to run
 
 ### 1️⃣ Clone the repository:
+```bash
+git clone https://github.com/UkrainetsNazar/TicTacToe.git
+```
 
 ### 2️⃣ Run the backend server:
-
+```bash
+cd TicTacToe/GameHub.Server/GameHub.API
+dotnet run
+```
+<pre>
+  <code>
+    ```bash # Кілька команд cd my-project dotnet restore dotnet run ```
+  </code>
+</pre>
 To install the .NET SDK, visit the [official .NET website](https://dotnet.microsoft.com/en-us/download).
 
 ### 3️⃣ Run the React frontend:
-Ensure you have the latest .NET SDK installed.
+```bash
+cd TicTacToe/GameHub.Client
+npm install
+npm start
+```
 
 ✅ The app should now be running on http://localhost:5173 and backend on http://localhost:5216.
