@@ -1,9 +1,11 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:5216/api/auth',
+  baseURL: "http://localhost:5216/api/auth",
   withCredentials: true,
 });
+
+const bareAxios = axios.create({ withCredentials: true });
 
 const authEndpoints = ["/login", "/register", "/refresh-token"];
 
@@ -18,15 +20,13 @@ axiosInstance.interceptors.request.use(
     if (!token) return config;
 
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+      const payload = JSON.parse(atob(token.split(".")[1]));
       const now = Math.floor(Date.now() / 1000);
       const exp = payload.exp;
 
       if (exp < now + 60) {
-        const res = await axios.post(
-          "http://localhost:5216/api/auth/refresh-token",
-          {},
-          { withCredentials: true }
+        const res = await bareAxios.post(
+          "http://localhost:5216/api/auth/refresh-token"
         );
         token = res.data.accessToken;
         localStorage.setItem("token", token);
@@ -35,8 +35,10 @@ axiosInstance.interceptors.request.use(
       config.headers["Authorization"] = `Bearer ${token}`;
       return config;
     } catch (e) {
-      localStorage.removeItem("token");
-      window.location.href = "/login";
+      if (e.response?.status === 401) {
+        localStorage.removeItem("token");
+        window.location.href = "/login";
+      }
       return Promise.reject(e);
     }
   },
@@ -44,10 +46,10 @@ axiosInstance.interceptors.request.use(
 );
 
 axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     const isAuthRequest = authEndpoints.some((path) =>
-      error.config.url.includes(path)
+      error.config?.url?.includes(path)
     );
 
     if (error.response?.status === 401 && !isAuthRequest) {

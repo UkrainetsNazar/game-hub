@@ -43,19 +43,18 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto request)
     {
-        var tokens = await _authService.Login(request);
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ua = Request.Headers["User-Agent"].ToString();
+
+        var tokens = await _authService.Login(request, ip, ua);
 
         if (tokens.AccessToken == null)
             return Unauthorized(new { message = "Username or password is incorrect" });
 
         SetRefreshTokenCookie(tokens.RefreshToken);
 
-        return Ok(new
-        {
-            accessToken = tokens.AccessToken
-        });
+        return Ok(new { accessToken = tokens.AccessToken });
     }
-
 
     [HttpPost("refresh-token")]
     public async Task<IActionResult> RefreshToken()
@@ -64,7 +63,10 @@ public class AuthController : ControllerBase
         if (string.IsNullOrEmpty(refreshToken))
             return Unauthorized(new { message = "Refresh token cookie missing" });
 
-        var tokens = await _authService.RefreshToken(refreshToken);
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var ua = Request.Headers["User-Agent"].ToString();
+
+        var tokens = await _authService.RefreshToken(refreshToken, ip, ua);
 
         if (tokens == null)
             return Unauthorized(new { message = "Invalid refresh token" });
@@ -76,7 +78,6 @@ public class AuthController : ControllerBase
             accessToken = tokens.Value.AccessToken
         });
     }
-
 
     [Authorize]
     [HttpPost("logout")]
