@@ -67,6 +67,18 @@ public class GameHub : Hub
         await base.OnDisconnectedAsync(exception);
     }
 
+    public async Task<GameDto> GetGame(string gameId)
+    {
+        if (!Guid.TryParse(gameId, out var parsedGameId))
+            throw new HubException("Invalid game ID.");
+
+        var game = await _gameService.GetGameAsync(parsedGameId);
+        if (game == null)
+            throw new HubException("Game not found.");
+
+        return GameMapper.ToDto(game);
+    }
+
     public async Task<GameDto> CreateGame()
     {
         var game = await _gameService.CreateGameAsync(UserId);
