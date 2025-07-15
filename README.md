@@ -12,7 +12,7 @@ The app features user authentication, game room creation/joining, time-limited m
 
 ---
 
-## ✨ Features
+## ✨ Features:
 
 - User registration and login with JWT authentication 🔐
 - Refresh token logic with HttpOnly cookie support 🍪
@@ -24,7 +24,7 @@ The app features user authentication, game room creation/joining, time-limited m
 - Profile view with user stats (wins/losses/draws) 📊
 - Responsive and clean UI using React + TailwindCSS 🧩
 
-## 🧰 Built with
+## 🧰 Built with:
 
 - **Frontend**: React, Tailwind CSS, Axios, Framer Motion
 - **Backend**: ASP.NET Core (SignalR + gRPC + REST)
@@ -32,11 +32,11 @@ The app features user authentication, game room creation/joining, time-limited m
 - **Database**: Entity Framework Core (In-Memory for testing)
 - **Real-time communication**: SignalR
 
-## 📷 Overview
+## 📷 Overview:
 
 **Game view**
 
-## ▶️ How to run
+## ▶️ How to run:
 
 ### 1️⃣ Clone the repository:
 ```bash
@@ -48,11 +48,6 @@ git clone https://github.com/UkrainetsNazar/TicTacToe.git
 cd TicTacToe/GameHub.Server/GameHub.API
 dotnet run
 ```
-<pre>
-  <code>
-    ```bash # Кілька команд cd my-project dotnet restore dotnet run ```
-  </code>
-</pre>
 To install the .NET SDK, visit the [official .NET website](https://dotnet.microsoft.com/en-us/download).
 
 ### 3️⃣ Run the React frontend:
