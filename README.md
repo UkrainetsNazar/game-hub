@@ -5,10 +5,10 @@ The app features user authentication, game room creation/joining, time-limited m
 
 ## 📚 Table of Contents
 
-- [Features](#features)
-- [Built with](#built-with)
-- [Overview](#overview)
-- [How to run](#how-to-run)
+- [Features]()
+- [Built with]()
+- [Overview]()
+- [How to run]()
 
 ---
 
