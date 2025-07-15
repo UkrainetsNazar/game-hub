@@ -12,7 +12,7 @@ The app features user authentication, game room creation/joining, time-limited m
 
 ---
 
-## ✨ Features:
+## Features
 
 - User registration and login with JWT authentication 🔐
 - Refresh token logic with HttpOnly cookie support 🍪
