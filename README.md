@@ -34,8 +34,6 @@ The app features user authentication, game room creation/joining, time-limited m
 
 ## 📷 Overview:
 
-**Game view**
-
 <img src="GameHub.Client/src/assets/Screenshot 2025-07-15 at 17.43.35.png" width="600" />
 
 ## ▶️ How to run:
