@@ -4,6 +4,7 @@ import { createHubConnection } from "../signalr/gameHub";
 import Board from "../components/Board";
 import GameResult from "../components/GameResult";
 import TurnTimer from "../components/TurnTimer";
+import Loader from "../components/Loader";
 
 const GamePage = () => {
   const { gameId } = useParams();
@@ -131,7 +132,9 @@ const GamePage = () => {
     return game.currentTurn === mySymbol;
   };
 
-  if (loading || !game) return <p>Loading...</p>;
+  if (loading || !game) {
+    return <Loader message="Loading game..." />;
+  }
 
   return (
     <div className="p-4 max-w-md mx-auto bg-white shadow-xl rounded-xl mt-8">
