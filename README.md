@@ -24,7 +24,7 @@ The app features user authentication, game room creation/joining, time-limited m
 - Profile view with user stats (wins/losses/draws) 📊
 - Responsive and clean UI using React + TailwindCSS 🧩
 
-## 🧰 Built with:
+## Built with:
 
 - **Frontend**: React, Tailwind CSS, Axios, Framer Motion
 - **Backend**: ASP.NET Core (SignalR + gRPC + REST)
