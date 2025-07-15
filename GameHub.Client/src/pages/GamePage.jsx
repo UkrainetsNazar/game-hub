@@ -2,6 +2,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { createHubConnection } from "../signalr/gameHub";
 import Board from "../components/Board";
+import GameResult from "../components/GameResult";
+import TurnTimer from "../components/TurnTimer";
 
 const GamePage = () => {
   const { gameId } = useParams();
@@ -18,7 +20,7 @@ const GamePage = () => {
     const initializeConnection = async () => {
       if (connectionInitialized.current && hubRef.current) {
         if (gameId === "temp") return;
-        
+
         if (isCreatingGame.current) {
           isCreatingGame.current = false;
           return;
@@ -44,7 +46,7 @@ const GamePage = () => {
           console.log("Game updated:", updatedGame);
           setGame(updatedGame);
         });
-        
+
         hub.on("GameTimeout", () => setTimeoutMessage("Timeout!"));
 
         try {
@@ -122,12 +124,14 @@ const GamePage = () => {
       {game.status === 1 && (
         <>
           <p>{isMyTurn() ? "Your turn" : "Opponent's turn"}</p>
+          <TurnTimer currentTurn={game.currentTurn} duration={20} />
           <Board game={game} hub={hubRef.current} isMyTurn={isMyTurn()} />
         </>
       )}
 
-      {game.status === 2 && <p className="text-green-600">Game Over. Winner: {game.winnerName}</p>}
-      {game.status === 3 && <p className="text-red-500">{timeoutMessage}</p>}
+      {[2, 3, 4].includes(game.status) && (
+        <GameResult game={game} timeoutMessage={timeoutMessage} whoAmI={whoAmI} />
+      )}
     </div>
   );
 };

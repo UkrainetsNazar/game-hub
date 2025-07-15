@@ -62,7 +62,7 @@ public class GameService(AppDbContext context) : IGameService
         {
             game.Status = GameStatus.Won;
             game.WinnerId = playerId;
-            game.WinnerName = symbol.ToString();
+            game.WinnerName = game.PlayerXId == playerId ? game.PlayerXName : game.PlayerOName;
             await UpdatePlayerStatsAsync(game.PlayerXId, game.PlayerOId!.Value, playerId);
         }
         else if (!board.Contains('_'))
