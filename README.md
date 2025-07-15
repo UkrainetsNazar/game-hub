@@ -8,7 +8,7 @@ The app features user authentication, game room creation/joining, time-limited m
 - [Features](#-features)
 - [Built with](#-built-with)
 - [Overview](#-overview)
-- [How to run](#-how-to-run)
+- [How to run](#%EF%B8%8F-how-to-run)
 
 ---
 
